@@ -1,0 +1,8 @@
+franka_loger:
+  ros__parameters:
+    fps: 2.0
+    number_cams: 1
+    image_path: "/workspace/ros2/images"
+    start_delay: 1.0
+    episode_num: 1
+    episode_descr: "Put apple in the box"
