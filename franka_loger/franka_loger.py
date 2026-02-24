@@ -57,7 +57,7 @@ class Franka_loger(Node):
             10))
         self.my_subscriptions.append(self.create_subscription(
             JointState,
-            'gello/joint_states',
+            '/gello/joint_states',
             self.gello_log,
             10))
         
@@ -86,10 +86,10 @@ class Franka_loger(Node):
         if not self.curently_logging:
             return
         #self.get_logger().info('Logging')
-        if self.current_joints == None:
+        if self.current_joints is None:
             self.get_logger().warn(f'\033[31mNot getting joints from robot.\033[0m')
             return
-        if self.current_gello == None:
+        if self.current_gello is None:
             self.get_logger().warn(f'\033[31mNot getting joints from gello.\033[0m')
             return                     
         timestamp, joints = self.current_joints
@@ -124,6 +124,7 @@ class Franka_loger(Node):
         
         columns = ['timestamp'] + [f'joint{i}' for i in range(1,8)] + [f'action{i}' for i in range(1,8)]
         df = pd.DataFrame(self.captured_joints, columns=columns)
+        df["episode_descr"] = episode_descr
         parquet_path = os.path.join(self.joints_path, f'episode{episode_num:04d}_joints.parquet')
         df.to_parquet(parquet_path,index=False)
         print('Joints saved')
@@ -186,4 +187,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
