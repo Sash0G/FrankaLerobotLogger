@@ -10,7 +10,7 @@ where i is the number of the camera, beginning from 0
 
 f.e. 
 ```bash
-ros2 run usb_cam usb_cam_node_exe --ros-args --params-file src/franka_loger/camera_yaml/test_camera.yaml -r /image_raw:=/cam0/image_raw
+ros2 run usb_cam usb_cam_node_exe --ros-args --params-file src/franka_loger/config/test_camera.yaml -r /image_raw:=/cam0/image_raw
 ```
 
 # To setup the loger
@@ -20,10 +20,18 @@ colcon build --packages-select franka_loger
 source install/setup.bash
 ```
 After that just run
+
 ```bash
-ros2 launch franka_loger log_launch.py config_file:=<your_yaml>
+ros2 run franka_loger franka_loger --ros-args --params-file <yaml_file>
 ```
-If config_file is skipped, it uses logger_params.yaml as default
+You cal also run, with the default yaml
 ```bash
-ros2 launch franka_loger log_launch.py
+ros2 run franka_loger franka_loger
+```
+
+
+
+f.e.
+```bash
+ros2 run franka_loger franka_loger --ros-args --params-file src/franka_loger/config/logger_params.yaml
 ```

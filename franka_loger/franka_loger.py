@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import ExternalShutdownException
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import JointState
 import cv2
@@ -7,6 +8,8 @@ import pandas as pd
 from cv_bridge import CvBridge
 import os
 import numpy as np
+import threading
+import sys
 
 
 class Franka_loger(Node):
@@ -16,14 +19,11 @@ class Franka_loger(Node):
         self.declare_parameter('number_cams', 1)
         self.declare_parameter('directory_path', '/workspace/logger')
         self.declare_parameter('start_delay', 1.0)
-        self.declare_parameter('episode_num', 1)
-        self.declare_parameter('episode_descr', 'put the apple in the box')
+        self.curently_logging = True
         self.current_joints = None
         self.captured_joints = []
         self.current_image = []
         self.captured_images = []
-        self.episode_num = self.get_parameter('episode_num').value
-        self.episode_descr = self.get_parameter('episode_descr').value
         self.start_delay = self.get_parameter('start_delay').value
         self.image_path = self.get_parameter('directory_path').value+'/images'
         self.joints_path = self.get_parameter('directory_path').value+'/joints'
@@ -43,7 +43,6 @@ class Franka_loger(Node):
             self.current_image.append(None)
             self.captured_images.append([])
             text = '/cam'+str(i)+'/image_raw'
-            self.get_logger().info(text)
             self.my_subscriptions[i] = self.create_subscription(
                 Image,
                 text,
@@ -55,6 +54,12 @@ class Franka_loger(Node):
             '/joint_states',
             self.joint_log,
             10))
+        
+    def stop_logging(self):
+        self.curently_logging=False
+    
+    def start_logging(self):
+        self.curently_logging=True
 
     def begin_timer(self):
         self.init_timer.cancel()
@@ -69,19 +74,30 @@ class Franka_loger(Node):
         self.current_joints = (timestamp,np.array(msg.position, dtype=np.float32))
 
     def frame_log(self):
-        self.get_logger().info('Logging')
-        for i in range(0, self.number_cams):
-            if self.current_image[i] != None:
-                self.captured_images[i].append(self.current_image[i])
+        if not self.curently_logging:
+            return
+        #self.get_logger().info('Logging')
         if self.current_joints != None:
             timestamp, joints = self.current_joints
             self.captured_joints.append([timestamp,*joints])
+        else:
+            self.get_logger().warn(f'\033[31mNot getting joints from robot\033[0m')
+            return
+        for i in range(0, self.number_cams):
+            if self.current_image[i] != None:
+                self.captured_images[i].append(self.current_image[i])
+            else:
+                self.get_logger().warn(f'\033[31mCamera {i} not working\033[0m')
 
-    def shutdown_function(self):
+    def put_in_file(self, episode_num, episode_descr):
+        if len(self.captured_joints)==0:
+            print('There is nothing to encode.')
+            return
+
         print('Begining to encode.')
         for i in range(0, self.number_cams):
             video_name = os.path.join(
-                self.image_path, f'episode{self.episode_num:04d}_cam{i:04d}_video.mp4')
+                self.image_path, f'episode{episode_num:04d}_cam{i:04d}_video.mp4')
             fourcc = cv2.VideoWriter_fourcc(*'avc1')
             first_img = self.bridge.imgmsg_to_cv2(
                 self.captured_images[i][0], desired_encoding='bgr8')
@@ -97,42 +113,54 @@ class Franka_loger(Node):
         
         columns = ['timestamp'] + [f'joint{i}' for i in range(1,8)]
         df = pd.DataFrame(self.captured_joints, columns=columns)
-        parquet_path = os.path.join(self.joints_path, f'episode{self.episode_num:04d}_joints.parquet')
+        parquet_path = os.path.join(self.joints_path, f'episode{episode_num:04d}_joints.parquet')
         df.to_parquet(parquet_path,index=False)
         print('Joints saved')
-        print('Completed episode capture. Shutting down.')
+        print(f'Completed episode capture of episode {episode_num}')
+        self.captured_joints.clear()
+        for image_array in self.captured_images:
+            image_array.clear()
 
-    # def shutdown_function(self):
-    #     #self.get_logger().info('Shutting down')
-    #     for i in range(0,self.number_cams):
-    #         lnn = len(self.captured_states[i])
-    #         for j in range(0,lnn):
-    #             cur_name = os.path.join(self.image_path, f'cam{i}_frame_{j:06d}.jpg')
-    #             self.make_file(msg=self.captured_states[i][j],file_name=cur_name)
-    #         #self.get_logger().info('Captured '+str(lnn))
-
-    # def make_file(self, msg, file_name):
-    #     try:
-    #         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-    #         cv2.imwrite(file_name, cv_image)
-    #     except Exception as e:
-    #         print(f"Error saving {file_name}: {e}")
-
+def spin_node(loger): #the idea is that ros complains when you shut him down externally, so i remove the complaining by catching the error
+        try:
+            rclpy.spin(loger)
+        except ExternalShutdownException: 
+            pass
 
 def main(args=None):
+
+    if '--params-file' not in sys.argv:
+        print("No YAML provided. Loading default config '/workspace/ros2/src/franka_loger/config/logger_params.yaml']")
+        sys.argv.extend(['--ros-args', '--params-file', '/workspace/ros2/src/franka_loger/config/logger_params.yaml'])
+
     rclpy.init(args=args)
 
     franka_loger = Franka_loger()
 
+    cur_episode_num = 0
+    cur_episode_descr = input('Enter Description of episode 0.\n')
+    print('Beginning logging and Episode 0.\n')
+    spin_thread = threading.Thread(target=spin_node, args=(franka_loger,), daemon=True) #this is the threading, so target is the function to be called with args, daemon=True means to kill the thread if loger.py dies
+    spin_thread.start()
+    franka_loger.start_logging()
     try:
-        rclpy.spin(franka_loger)
+        while True:
+            end_episode = input(f'Enter anything to end episode {cur_episode_num}.\n')
+            franka_loger.stop_logging()
+            franka_loger.put_in_file(episode_num=cur_episode_num,episode_descr=cur_episode_descr)
+            print(f'Ended episode{cur_episode_num}.\n')
+            cur_episode_num+=1
+            cur_episode_descr = input(f'Enter Description of episode {cur_episode_num}.\n')
+            print(f'Begining Episode {cur_episode_num}.\n')
+            franka_loger.start_logging()
     except KeyboardInterrupt:
-        franka_loger.get_logger().info('Keyboard Interrupt (Ctrl+C)')
-    finally:
-        franka_loger.shutdown_function()
-        franka_loger.destroy_node()
-        if rclpy.ok():
-            rclpy.shutdown()
+        print('Keyboard Interrupt, starting abortion.\n')
+
+    franka_loger.destroy_node()
+    if rclpy.ok():
+        rclpy.shutdown()
+    if spin_thread.is_alive():
+        spin_thread.join() #this waits for the thread to finish
 
 
 if __name__ == '__main__':

@@ -4,5 +4,3 @@ franka_loger:
     number_cams: 1
     directory_path: "/home/admin-insait/Documents/GitHub/INSAIT/FrankaLerobotLogger"
     start_delay: 1.0
-    episode_num: 1
-    episode_descr: "Put apple in the box"
