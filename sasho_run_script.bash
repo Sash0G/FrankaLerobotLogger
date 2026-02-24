@@ -1,1 +1,1 @@
-/home/admin-insait/ros2_ws/src/FrankaLerobotLogger/sasho_run_cam.bash
+ros2 launch franka_loger log_launch.py config_file:=sasho_config.yaml
