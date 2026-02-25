@@ -4,4 +4,4 @@ franka_loger:
     number_cams: 1
     directory_path: "/workspace/ros2"
     start_delay: 1.0
-    cameras_path: "/workspace/ros2/src/franka_loger/config/config_camera"
+    cameras_path: "/home/admin-insait/ros2_ws/src/FrankaLerobotLogger/config/config_camera"
