@@ -52,9 +52,10 @@ def main():
     end_episode = config.get("end_episode",0)
     joint_cols = [f"joint{i+1}" for i in range(num_joints)]
     action_cols = [f"action{i+1}" for i in range(num_joints)]
-
+    
     for ep in range(start_episode,end_episode+1):
         path = os.path.join(directory_path,f"joints/episode{ep:04d}_joints.parquet")
+        valid = True
         df = pd.read_parquet(path)
         states = df[joint_cols].values
         actions = df[action_cols].values

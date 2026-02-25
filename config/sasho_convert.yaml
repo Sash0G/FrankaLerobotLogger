@@ -1,0 +1,10 @@
+robot:
+  name: "fr3"
+  num_joints: 7
+  num_cameras: 1
+fps: 2
+start_episode: 0
+end_episode: 7
+hugging_face_repo: "Sash0g"
+dataset_name: "franka-gello"
+directory_path: "/home/admin-insait/Documents/GitHub/INSAIT/FrankaLerobotLogger"
