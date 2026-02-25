@@ -15,8 +15,8 @@ def main():
     parser.add_argument(
         "--config",
         '-c',
-        required=True,
         type=str,
+        default = "convert_params.yaml",
         help="Name of config file"
     )
 
@@ -31,6 +31,8 @@ def main():
     robot = config.get("robot",{})
     num_joints = robot.get("num_joints",7)
     num_cameras = robot.get("num_cameras",2)
+    directory_path = config.get("directory_path","/workspace/ros2")
+    print(directory_path)
     dataset = LeRobotDataset.create(
         repo_id=config.get("hugging_face_repo","SashoPepi")+"/"+config.get("dataset_name","franka-gello"),
         fps=config.get("fps",30),
@@ -52,13 +54,15 @@ def main():
 
 
     for i in range(start_episode,end_episode+1):
-        df = pd.read_parquet(f"./joints/episode{i:04d}_joints.parquet")
+        path = os.path.join(directory_path,f"joints/episode{i:04d}_joints.parquet")
+        print(path)
+        df = pd.read_parquet(path)
         episode_states.append(df[["joint1", "joint2", "joint3", "joint4", "joint5", "joint6", "joint7"]].values)
         episode_actions.append(df[["action1", "action2", "action3", "action4", "action5", "action6", "action7"]].values)
         descriptions.append(df['episode_descr'])
         cameras = []
         for  j in range(2):
-            cameras.append(cv2.VideoCapture(f"./images/episode{i:04d}_cam{j:04d}_video.mp4"))
+            cameras.append(cv2.VideoCapture(os.path.join(directory_path,f"images/episode{i:04d}_cam{j:04d}_video.mp4")))
         episode_video.append(cameras)
 
     for states, actions, description, video in zip(episode_states,episode_actions,descriptions,episode_video):

@@ -1,9 +1,10 @@
 robot:
   name: "fr3"
   num_joints: 7
-  num_cameras: 2
+  num_cameras: 1
 fps: 2
-start_episod: 0
-end_episode: 7
+start_episode: 1
+end_episode: 1
 hugging_face_repo: "SashoPepi"
 dataset_name: "franka-gello"
+directory_path: "/workspace/ros2/src/FrankaLerobotLogger/"

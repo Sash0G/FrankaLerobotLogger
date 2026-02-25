@@ -28,10 +28,17 @@ You cal also run, with the default yaml
 ```bash
 ros2 run franka_loger franka_loger
 ```
-
-
-
 f.e.
 ```bash
 ros2 run franka_loger franka_loger --ros-args --params-file src/franka_loger/config/logger_params.yaml
 ```
+
+# Converting episodes to Lerobot format
+
+```bash
+ros2 run franka_loger convert_to_lerobot --config <name of config file>
+```
+default config file is convert_param.yaml
+You need to build after changing to config file
+
+
