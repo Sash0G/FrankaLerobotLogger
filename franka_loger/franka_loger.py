@@ -10,6 +10,9 @@ import os
 import numpy as np
 import threading
 import sys
+import subprocess
+import time
+import signal
 
 
 class Franka_loger(Node):
@@ -19,12 +22,14 @@ class Franka_loger(Node):
         self.declare_parameter('number_cams', 1)
         self.declare_parameter('directory_path', '/workspace/logger')
         self.declare_parameter('start_delay', 1.0)
+        self.declare_parameter('cameras_path', '/workspace/ros2/src/franka_loger/config/config_camera')
         self.curently_logging = True
         self.current_joints = None
         self.current_gello = None
         self.captured_joints = []
         self.current_image = []
         self.captured_images = []
+        self.cameras_path = self.get_parameter('cameras_path').value
         self.start_delay = self.get_parameter('start_delay').value
         self.image_path = self.get_parameter('directory_path').value+'/images'
         self.joints_path = self.get_parameter('directory_path').value+'/joints'
@@ -72,7 +77,6 @@ class Franka_loger(Node):
         self.timer = self.create_timer(1 / self.fps, self.frame_log)
 
     def camera_log(self, msg, cam_id):
-        # self.get_logger().info('Received from '+str(cam_id))
         self.current_image[cam_id] = msg
 
     def gello_log(self, msg):
@@ -85,7 +89,7 @@ class Franka_loger(Node):
     def frame_log(self):
         if not self.curently_logging:
             return
-        #self.get_logger().info('Logging')
+        self.get_logger().info('Logging')
         if self.current_joints is None:
             self.get_logger().warn(f'\033[31mNot getting joints from robot.\033[0m')
             return
@@ -139,6 +143,12 @@ def spin_node(loger): #the idea is that ros complains when you shut him down ext
         except ExternalShutdownException: 
             pass
 
+def check_cameras(cam_proceses):
+    for proces in cam_proceses:
+        if proces.poll() is not None:
+            return False
+    return True
+
 def main(args=None):
 
     if '--params-file' not in sys.argv:
@@ -150,8 +160,28 @@ def main(args=None):
     franka_loger = Franka_loger()
 
     spin_thread = None
+    cam_proceses = []
 
     try:
+        print('Launching Cameras')
+        for i in range(0,franka_loger.number_cams):
+            config_name = franka_loger.cameras_path+f'{i}.yaml'
+            cam_command = ['ros2', 'run', 'usb_cam', 'usb_cam_node_exe', '--ros-args', '--params-file', config_name, '-r', f'/image_raw:=/cam{i}/image_raw' ]
+            cur_process = subprocess.Popen(cam_command,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            time.sleep(1)
+            if cur_process.poll() is not None:
+                print(f'Couldn\'t launch camera {i}')
+                for proces in cam_proceses:
+                    if proces.poll() is None:
+                        pgid = os.getpgid(proces.pid)
+                        os.killpg(pgid, signal.SIGKILL)
+                        proces.wait()
+                if rclpy.ok():
+                    rclpy.shutdown()
+                franka_loger.destroy_node()
+                return
+            print(f'Launched camera {i}')
+            cam_proceses.append(cur_process)
         cur_episode_num = 0
         while True:
             try_num = input('Enter First Episode Number.\n')
@@ -169,6 +199,9 @@ def main(args=None):
             franka_loger.stop_logging()
             franka_loger.put_in_file(episode_num=cur_episode_num,episode_descr=cur_episode_descr)
             print(f'Ended episode{cur_episode_num}.\n')
+            if not check_cameras(cam_proceses):
+                print('Not all cameras are working.\n')
+                break
             cur_episode_num+=1
             inp = input(f'Enter Description of episode {cur_episode_num} or leave empty to repeat previous.\n')
             if inp:
@@ -178,6 +211,12 @@ def main(args=None):
     except KeyboardInterrupt:
         print('\nKeyboard Interrupt, starting abortion.\n')
 
+
+    for proces in cam_proceses:
+        if proces.poll() is None:
+            pgid = os.getpgid(proces.pid)
+            os.killpg(pgid, signal.SIGKILL)
+            proces.wait()
     franka_loger.destroy_node()
     if rclpy.ok():
         rclpy.shutdown()
