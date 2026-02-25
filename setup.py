@@ -27,7 +27,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'franka_loger = franka_loger.franka_loger:main'
+            'franka_loger = franka_loger.franka_loger:main',
+            'convert_to_lerobot = franka_loger.convert_to_lerobot:main' 
         ],
     },
 )

@@ -1,0 +1,9 @@
+robot:
+  name: "fr3"
+  num_joints: 7
+  num_cameras: 2
+fps: 2
+start_episod: 0
+end_episode: 7
+hugging_face_repo: "SashoPepi"
+dataset_name: "franka-gello"
