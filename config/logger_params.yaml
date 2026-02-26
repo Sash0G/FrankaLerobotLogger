@@ -1,7 +1,7 @@
 franka_loger:
   ros__parameters:
-    fps: 2.0
-    number_cams: 1
+    fps: 10.0
+    number_cams: 2
     directory_path: "/workspace/ros2"
     start_delay: 1.0
     cameras_path: "/workspace/ros2/src/franka_loger/config/config_camera"

@@ -113,7 +113,7 @@ class Franka_loger(Node):
         for i in range(0, self.number_cams):
             video_name = os.path.join(
                 self.image_path, f'episode{episode_num:04d}_cam{i:04d}_video.mp4')
-            fourcc = cv2.VideoWriter_fourcc(*'avc1')
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             first_img = self.bridge.imgmsg_to_cv2(
                 self.captured_images[i][0], desired_encoding='bgr8')
             height, width, _ = first_img.shape
