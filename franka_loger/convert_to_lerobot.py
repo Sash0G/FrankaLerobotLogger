@@ -28,6 +28,8 @@ def main():
         config = yaml.safe_load(f)
     robot = config.get("robot",{})
     num_joints = robot.get("num_joints",7)
+    if(robot.get("gripper")):
+        num_joints+=1
     num_cameras = robot.get("num_cameras",2)
     directory_path = config.get("directory_path","/workspace/ros2")
 
