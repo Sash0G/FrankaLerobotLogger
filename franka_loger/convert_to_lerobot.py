@@ -63,7 +63,6 @@ def main():
         actions = df[action_cols].values
         description = df['episode_descr'][0]
         cameras = [cv2.VideoCapture(os.path.join(directory_path,f"images/episode{ep:04d}_cam{j:04d}_video.mp4")) for j in range(num_cameras)]
-
         for state, action in zip(states,actions):
             frames = []
             for camera in cameras:
@@ -90,7 +89,7 @@ def main():
         dataset.save_episode()
         for camera in cameras:
             camera.release()
-
+    dataset.finalize()
     dataset.push_to_hub() 
     del dataset
 
