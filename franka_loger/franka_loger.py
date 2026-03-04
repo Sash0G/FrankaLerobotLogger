@@ -100,10 +100,14 @@ class Franka_loger(Node):
     def frame_log(self):
         if not self.curently_logging:
             return
+<<<<<<< HEAD
         #self.get_logger().info('Logging')
         if self.current_gripper is None:
             self.get_logger().warn(f'\033[31mNot getting joint from gripper.\033[0m')
             return
+=======
+        self.get_logger().info('Logging')
+>>>>>>> f66644727e0feaf51c30141908fc8a921de51d2f
         if self.current_joints is None:
             self.get_logger().warn(f'\033[31mNot getting joints from robot.\033[0m')
             return
@@ -140,7 +144,11 @@ class Franka_loger(Node):
                 video_writer.write(cv_img)
             video_writer.release()
             print(f'Done video of cam {i}')
-        # print(self.captured_joints)
+        # the current algorithm only looks at gello_joint cus we still havent looked at how
+        # to find the actual joint states, it sets the current value as joint
+        # for action it iterates forward as long as the array is monotone, and puts the last
+        # action that breaks the monotomy. In essence if you are closing, it puts the last
+        # value of the closing and action
         for i in range(0,len(self.captured_joints)):
             if i==(len(self.captured_joints)-1):
                 self.captured_joints[i][16]=self.captured_joints[i][8]
@@ -206,6 +214,7 @@ def main(args=None):
         print('Launching Cameras')
         for i in range(0,franka_loger.number_cams):
             config_name = franka_loger.cameras_path+f'{i}.yaml'
+<<<<<<< HEAD
             cam_command = ['ros2', 'run', 'usb_cam', 'usb_cam_node_exe', '--ros-args', '--params-file', config_name, '-r', f'/image_raw:=/cam{i}/image_raw', '-r', f'__node:=usb_cam{i}' ]
             cur_process = subprocess.Popen(cam_command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
             time.sleep(1)
@@ -214,6 +223,13 @@ def main(args=None):
                 saved_output, saved_errors = cur_process.communicate()
                 print(saved_output.strip())
                 print(saved_errors.strip())
+=======
+            cam_command = ['ros2', 'run', 'usb_cam', 'usb_cam_node_exe', '--ros-args', '--params-file', config_name, '-r', f'/image_raw:=/cam{i}/image_raw' ]
+            cur_process = subprocess.Popen(cam_command,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            time.sleep(1)
+            if cur_process.poll() is not None:
+                print(f'Couldn\'t launch camera {i}')
+>>>>>>> f66644727e0feaf51c30141908fc8a921de51d2f
                 for proces in cam_proceses:
                     if proces.poll() is None:
                         pgid = os.getpgid(proces.pid)
@@ -248,9 +264,13 @@ def main(args=None):
             if not check_cameras(cam_proceses):
                 print('Not all cameras are working.\n')
                 break
+<<<<<<< HEAD
             inp2 = input('Output YES if you want to redo episode')
             if inp2!='YES': 
                 cur_episode_num+=1
+=======
+            cur_episode_num+=1
+>>>>>>> f66644727e0feaf51c30141908fc8a921de51d2f
             inp = input(f'Enter Description of episode {cur_episode_num} or leave empty to repeat previous.\n')
             if inp:
                 cur_episode_descr = inp
@@ -270,6 +290,20 @@ def main(args=None):
         if spin_thread!=None and spin_thread.is_alive():
             spin_thread.join() #this waits for the thread to finish
 
+<<<<<<< HEAD
+=======
+
+    for proces in cam_proceses:
+        if proces.poll() is None:
+            pgid = os.getpgid(proces.pid)
+            os.killpg(pgid, signal.SIGKILL)
+            proces.wait()
+    franka_loger.destroy_node()
+    if rclpy.ok():
+        rclpy.shutdown()
+    if spin_thread!=None and spin_thread.is_alive():
+        spin_thread.join() #this waits for the thread to finish
+>>>>>>> f66644727e0feaf51c30141908fc8a921de51d2f
 
 
 if __name__ == '__main__':
