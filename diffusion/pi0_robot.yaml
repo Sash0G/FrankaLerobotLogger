@@ -1,0 +1,15 @@
+policy_config:
+  autoclass: examples.diffusion.diffusion.LerobotDiffusionPolicy
+  flip_gripper: True
+  action_space: joint_positions
+
+runner_config:
+  autoclass: robot_inference.client.robot_episode_runner.RobotEpisodeRunner
+  env_config:
+    ip: localhost
+    port: 5556
+    min_period: 0.06666666666666667  # 1 / 15
+  max_episode_steps: 600
+  recorder_config:
+    output_path: ./rollouts
+    rerun_enabled: False  # joint velocities logging not supported!

@@ -1,0 +1,14 @@
+policy_config:
+  autoclass: examples.pi0.pi0.PizeroModel
+  model_id: pi0_fast_droid_jointpos
+  checkpoint_dir: gs://openpi-assets-simeval/pi0_fast_droid_jointpos
+
+policy_io_config:
+  image_resolution: [224, 224]
+  needs_wrist_camera: True
+  n_external_cameras: 1
+  needs_stereo_camera: False
+  needs_session_id: False
+  action_space: joint_position
+
+port: 8000

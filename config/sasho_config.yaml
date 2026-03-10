@@ -1,7 +1,0 @@
-franka_loger:
-  ros__parameters:
-    fps: 2.0
-    number_cams: 1
-    directory_path: "/home/admin-insait/Documents/GitHub/INSAIT/FrankaLerobotLogger"
-    start_delay: 1.0
-    cameras_path: "/home/admin-insait/ros2_ws/src/FrankaLerobotLogger/config/config_camera"
