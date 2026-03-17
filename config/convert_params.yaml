@@ -1,16 +1,12 @@
 robot:
   name: "fr3"
   num_joints: 7
+  gripper: true
   num_cameras: 2
-  gripper: True
 fps: 15
 start_episode: 0
-end_episode: 49
+end_episode: 10
 hugging_face_repo: "SashoPepi"
-<<<<<<< HEAD
-dataset_name: "franka-gello-close-box"
+dataset_name: "franka-gello-close-box_v8"
 directory_path: "/workspace/ros2"
-=======
-dataset_name: "franka-gello"
-directory_path: "/workspace/ros2/src/FrankaLerobotLogger/"
->>>>>>> f66644727e0feaf51c30141908fc8a921de51d2f
+root_path: "/workspace/ros2"

@@ -6,6 +6,7 @@ robot:
 fps: 10
 start_episode: 0
 end_episode: 10
-hugging_face_repo: "Sash0g"
-dataset_name: "franka-gello"
+hugging_face_repo: "SashoPepi"
+dataset_name: "franka-gello-close-box_v8"
 directory_path: "/workspace/ros2"
+root_path: "/workspace/ros2"
