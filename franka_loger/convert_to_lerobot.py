@@ -104,7 +104,6 @@ def main():
     args = parser.parse_args()
     package_share_directory = get_package_share_directory('franka_loger')
     config_file_path = os.path.join(package_share_directory, 'config', args.config)
-    print(config_file_path)
     with open(config_file_path, "r") as f:
         config = yaml.safe_load(f)
     
