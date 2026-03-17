@@ -15,7 +15,7 @@ import shutil
 class ConvertLerobot():
     def __init__(self, config):
         self.repo_id = config.get("hugging_face_repo","SashoPepi")+"/"+config.get("dataset_name","franka-gello")
-        self.root = config.get("root_path", os.getcwd)+f"/data/{self.repo_id}"
+        self.root = config.get("root_path", os.getcwd())+f"/data/{self.repo_id}"
         self.robot = config.get("robot",{})
         self.num_joints = self.robot.get("num_joints",7)
         if(self.robot.get("gripper")):
@@ -104,7 +104,7 @@ def main():
     args = parser.parse_args()
     package_share_directory = get_package_share_directory('franka_loger')
     config_file_path = os.path.join(package_share_directory, 'config', args.config)
-
+    print(config_file_path)
     with open(config_file_path, "r") as f:
         config = yaml.safe_load(f)
     
