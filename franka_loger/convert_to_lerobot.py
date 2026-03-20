@@ -29,13 +29,14 @@ class ConvertLerobot():
 
     def create_features(self):
         features = {
-            "observation.state": {"dtype": "float32", "shape": (self.num_joints,)},
-            "action": {"dtype": "float32", "shape": (self.num_joints,)},
+            "observation.state": {"dtype": "float32", "shape": (self.num_joints,), "names": "observation.state",},
+            "action": {"dtype": "float32", "shape": (self.num_joints,), "names": "action",},
         }
         for i in range(self.num_cameras):
             features[f"observation.images.cam{i}"] = {
                 "dtype": "video",
                 "shape": (3, 480, 640),
+                "names": f"observation.images.cam{i}",
             }
         return features
 
